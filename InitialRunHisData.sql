@@ -1,0 +1,34 @@
+--WAITFOR delay '03:00:00'
+DECLARE @CYCLE_START VARCHAR(20)
+DECLARE @CYCLE_END VARCHAR(20)
+DECLARE @ID uniqueidentifier
+DECLARE @STEP_ID INT
+DECLARE @CMD nvarchar(1000)
+DECLARE @USR CHAR(20)
+SET @CYCLE_START='20110101'
+SET @CYCLE_END='2011/12/31 23:59:59'
+DECLARE @JOB_NAME VARCHAR(100)
+DECLARE @QT_ST INT
+SET @QT_ST=1
+SELECT NAME,IDENTITY(INT,1,1) ROWNM INTO #WORKLIST FROM MSDB.DBO.SYSJOBS
+WHERE NAME LIKE '%GL' 
+WHILE (@QT_ST<=(SELECT COUNT(*) FROM #WORKLIST))
+  BEGIN
+    SELECT @JOB_NAME=NAME FROM #WORKLIST WHERE ROWNM=@QT_ST
+    SELECT @ID=S1.JOB_ID,@STEP_ID=STEP_ID,@JOB_NAME=LTRIM(RTRIM(@JOB_NAME)) 
+    FROM MSDB.DBO.SYSJOBS AS S1
+    JOIN MSDB.dbo.SYSJOBSTEPS  AS S2 ON S1.JOB_ID=S2.JOB_ID
+    WHERE S1.NAME=S2.STEP_NAME AND S1.NAME=@JOB_NAME
+
+SET @CMD=N'/SQL "\JobControl\'+@JOB_NAME+'" /SERVER "TWTPEDWD0" /DECRYPT etl /CHECKPOINTING OFF '+
+          '/SET "\Package.Variables[User::CycleStart].Properties[Value]";"'+@CYCLE_START+'" '+
+          '/SET "\Package.Variables[User::CycleEnd].Properties[Value]";"'+@CYCLE_END+'" '+
+          '/SET "\Package.Variables[User::StartMode].Properties[Value]";NORMAL /REPORTING E'
+EXEC msdb.dbo.sp_update_jobstep @job_id=@ID, @step_id=@STEP_ID , 
+  @command=@CMD
+exec msdb.dbo.sp_start_job 
+     @job_name =@job_name
+    SET @QT_ST=@QT_ST+1
+  END
+DROP TABLE #WORKLIST
+ 

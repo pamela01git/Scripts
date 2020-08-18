@@ -1,0 +1,31 @@
+/* Under SQL Server 2005 */
+
+USE CRMBasisDB
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser
+
+USE PCuCampDB
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser
+
+USE PCuInfoDB
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser
+
+USE PCuInfoDB_DEL
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser
+
+USE PCuSegDB
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser
+
+USE PCuSegMD
+GO
+GRANT VIEW DEFINITION ON USER::odsdba
+TO updateuser

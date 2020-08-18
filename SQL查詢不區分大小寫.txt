@@ -1,0 +1,1 @@
+SELECT CharIndex('From', 'Select * from L7PBK' COLLATE Chinese_Taiwan_Stroke_CI_AS) 

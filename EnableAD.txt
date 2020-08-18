@@ -1,0 +1,70 @@
+-----Win 2012
+dcpromo
+gpupdate /force
+
+(1) run gpmc.msc (Group Policy Management)
+
+(2) Expand your Domain
+
+(3) Expand <Group Policy Objects> and right-click <default domain controllers policy>.  Click Edit.
+
+(4) Expand: <Computer Configurations> <Policies> <Windows Settings> <Security Settings> <Local Policies> <User Rights Assignment>
+
+(5) Right click <Allow log on locally> and click Properties.  Amend as required.
+
+(6) Run gpupdate and wait for confirmation: "user policy update has completed succesfully" (default gpudate without switches should only apply the changes)
+
+(7) Log out and log back in as domain user
+
+(8) tada
+
+
+--Win 2012 R2
+http://www.interworks.com/blogs/ijahanshahi/2014/01/02/creating-windows-2012-or-2012r2-domain-controller
+
+http://msdn.microsoft.com/en-us/library/windowsazure/dn275963.aspx
+
+
+
+
+1.Start-->Run-->secpol.msc
+
+Security Settings\Local Policies\User Rights Assignment
+
+Right pane --> double-click on Allow log on through Remote Desktop
+Services --> Add Users or Group --> enter Remote Desktop Users
+
+
+2.Start-->Run-->services.msc
+
+Look for Remote Desktop Services and make sure the Log on account is Network System, not Local Service.
+
+
+3.Check your event logs
+
+
+
+User Not Granted Logon Type Error
+Product(s): Tableau Server
+Version(s): All
+Last Modified Date: 12 Dec 2013
+When configuring Tableau Server during installation, you need to specify an account that the server can run as. By default the server uses the Network Service account. Alternatively, you can specify a specific user. Specific user names should be specified in the following format:
+Domain\username
+
+Sometimes if you've specified a specific "run-as" user you may encounter the following Logon failure error later during installation:
+
+"Logon failure: the user has not been granted the requested logon type at this computer."
+
+This error happens when the user account you specified does not have the right permissions that Tableau Server needs to run correctly. The "run-as" user needs to have the following permissions:
+
+Access this computer from a network
+Log on as a service
+In some cases, depending on the complexity of the Microsoft security environment, the user account may need these additional privileges:
+
+Act as part of the operating system
+Allow logon through terminal services
+Log on locally
+Take ownership of files or other objects
+Alternate Search Terms: Information Licenses and Installation run-as user
+
+http://kb.tableausoftware.com/articles/knowledgebase/user-not-granted-logon-type

@@ -1,0 +1,6 @@
+use odsdb
+go
+DBCC CHECKTABLE('odsdba.odsms_un_secu', REPAIR_ALLOW_DATA_LOSS)
+
+DBCC CHECKDB ('odsdb_2009') WITH ALL_ERRORMSGS, NO_INFOMSGS;
+GO

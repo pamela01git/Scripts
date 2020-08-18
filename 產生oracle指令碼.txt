@@ -1,0 +1,65 @@
+DECLARE 
+
+  xSQLCMD VARCHAR2(28000):='';
+
+  xOWNER_NAME VARCHAR2(100):='HISADM';
+
+  xTABLE_NAME VARCHAR2(100):='PT_UNSCHEDULED_HOURS';
+
+  xCOLUMN_NAME VARCHAR2(500);
+
+  cursor TABCOLS is 
+
+  SELECT 'If IsDBNull(oledbRdr.GetValue('||TO_CHAR(COLUMN_ID-1)||'))=false then'||CHR(13)||CHR(10)||
+
+  'OutputBuffer.'||REPLACE(RTRIM(COLUMN_NAME),'_','')||'='||
+
+  CASE WHEN DATA_TYPE IN ('VARCHAR2','CHAR') THEN 'OledbRdr.GetString('||TO_CHAR(COLUMN_ID-1)||')'
+
+       WHEN DATA_TYPE IN ('NUMBER','DECIMAL') THEN 'OledbRdr.GetDecimal('||TO_CHAR(COLUMN_ID-1)||')'
+
+       WHEN DATA_TYPE LIKE '%DATE%' THEN 'OledbRdr.GetDateTime('||TO_CHAR(COLUMN_ID-1)||')'
+
+       WHEN DATA_TYPE LIKE '%TIME%' THEN 'OledbRdr.GetDateTime('||TO_CHAR(COLUMN_ID-1)||')'
+
+       when DATA_TYPE='FLOAT' THEN 'OledbRdr.GetDouble('||TO_CHAR(COLUMN_ID-1)||')'
+
+       ELSE 'XXX' END
+
+ ||CHR(13)||CHR(10)||'End If'
+
+   COLUMN_NAME
+
+  FROM ALL_TAB_COLS     
+
+  WHERE TABLE_NAME=xTABLE_NAME and owner= xowner_name
+
+  ORDER BY COLUMN_ID;  
+
+  
+
+BEGIN
+
+  OPEN TABCOLS;
+
+    LOOP
+
+      FETCH TABCOLS INTO xCOLUMN_NAME;
+
+      xSQLCMD:=xSQLCMD||xCOLUMN_NAME||'';
+
+      EXIT WHEN TABCOLS%notfound;
+
+      dbms_output.put_line(xColumn_Name);
+
+      
+
+    END LOOP;
+
+    
+
+    
+
+  CLOSE TABCOLS;
+
+END;

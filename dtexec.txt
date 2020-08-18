@@ -1,0 +1,2 @@
+DTExec /f MyPackage /set \Package.Variables[User::test].Value;¡§This is the new value of the variable¡§
+dtexec /SQL "\PackageName" /SERVER "ServerName" /SET \package.Variables[User::VariableName].Value;"VariableValue"

@@ -1,0 +1,1 @@
+bcp AdventureWorks.HumanResources.Department format nul -T -n -f Department-n.fmt

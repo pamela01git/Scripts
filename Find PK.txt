@@ -1,0 +1,9 @@
+           SELECT  E.[NAME]            
+           FROM ODSDB.dbo.SYSOBJECTS A
+           JOIN ODSDB.dbo.SYSINDEXES C ON A.ID=C.ID
+           JOIN ODSDB.dbo.SYSINDEXKEYS D ON C.ID=D.ID AND C.INDID=D.INDID
+           JOIN ODSDB.dbo.SYSCOLUMNS E ON E.ID=C.ID AND D.COLID=E.COLID   
+WHERE C.indid BETWEEN 1 And 254 
+  AND  (c.status & 2048) = 2048
+  AND A.NAME = 'ODS_UN_PBMR'
+           ORDER BY C.INDID,D.KEYNO

@@ -1,0 +1,6 @@
+--使用sys.dm_exec_connections查詢本執行階段的IP位置
+SELECT client_net_address 'Client IP Address', 
+       local_net_address 'SQL Server IP Address',*
+FROM sys.dm_exec_connections
+WHERE session_id=@@SPID
+GO

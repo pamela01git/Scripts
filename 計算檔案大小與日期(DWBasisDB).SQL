@@ -1,0 +1,95 @@
+USE [DWBASISDB]
+GO
+
+DECLARE @DBNAME    CHAR(20)
+DECLARE @TABLENAME  CHAR(30)
+DECLARE @DT_IDX CHAR(1) --是否存在DATADT之INDEX記號
+DECLARE @CHK_IND_SQL NVARCHAR(MAX)
+DECLARE @ROWS BIGINT
+DECLARE @MIN_DATE CHAR(8)
+DECLARE @MAX_DATE CHAR(8)
+DECLARE @INS_XSURDETAIL_SQL NVARCHAR(MAX)
+DECLARE @INS_USAGE_SQL NVARCHAR(MAX)
+DECLARE @DATE_SQL NVARCHAR(MAX)
+DECLARE @ERR_NO  INT      --錯誤代碼
+DECLARE @FIND_SCHEMA_SQL NVARCHAR(4000)
+DECLARE @ERROR_MESSAGE  NVARCHAR(4000)
+DECLARE @SCHEMA CHAR(20) --TABLE SCHEMA
+DECLARE @TABLESIZE NUMERIC(24,4) --TABLE size
+DECLARE @DATADT_COL CHAR(20)
+
+------------------------------
+-- STEP2:重新產生含DATADT之資料表格清單
+------------------------------ 
+IF EXISTS (SELECT * FROM TEMPDB.DBO.sysobjects WHERE Name ='##MD_DWDTFG') DROP TABLE ##MD_DWDTFG;    
+CREATE TABLE ##MD_DWDTFG (TABLENAME CHAR(30),COLNAME CHAR(20))
+IF EXISTS (SELECT * FROM TEMPDB.DBO.sysobjects WHERE Name ='##MD_DWTBLINFO') DROP TABLE ##MD_DWTBLINFO;    
+CREATE TABLE ##MD_DWTBLINFO (DBNAME CHAR(20),TABLENAME CHAR(30),TABLESIZE NUMERIC(24,4),MAX_DATE CHAR(8),MIN_DATE CHAR(8))
+
+ 
+     --找出所有具DATADT欄位之資料表格         
+       INSERT INTO  ##MD_DWDTFG (TABLENAME,COLNAME)
+       SELECT A.NAME,E.NAME 
+       FROM  dbo.SYSOBJECTS A
+        JOIN dbo.SYSINDEXES C ON A.ID=C.ID
+        JOIN dbo.SYSINDEXKEYS D ON C.ID=D.ID AND C.INDID=D.INDID
+        JOIN dbo.SYSCOLUMNS E ON E.ID=C.ID AND D.COLID=E.COLID   
+      WHERE E.name IN ('DATADT','DATA_DATE');
+          
+
+
+------------------------------
+-- STEP7:依序判斷各資料表格之最大與最小起始日並寫入DBO.XSURSTATUSDTL
+------------------------------     
+   DECLARE TABLEList CURSOR LOCAL FOR   
+ 
+    --依序處理XSURDETAIL之所有資料 
+    SELECT A.NAME AS Table_Name,sum(C.TOTAL_PAGES)*8/1024.00  
+    FROM  SYSOBJECTS A
+    JOIN sys.partitions B ON A.ID=B.OBJECT_ID
+    JOIN sys.allocation_units C ON C.container_id =CASE WHEN C.TYPE IN (1,3) THEN B.hobt_id WHEN C.TYPE=2 THEN partition_id END
+    WHERE A.XTYPE='U' 
+    GROUP BY A.NAME;     
+  
+   OPEN TABLEList; 
+   FETCH NEXT FROM TABLEList 
+        INTO @TABLENAME,@TABLESIZE
+                                                                                                     
+   WHILE @@FETCH_STATUS = 0   
+      
+ BEGIN  	    
+
+     SELECT @DATADT_COL	= COLNAME
+     FROM ##MD_DWDTFG
+     WHERE TABLENAME=@TABLENAME
+
+
+    --判斷該TABLE是否有DATADT欄位且為INDEX             
+     IF EXISTS (SELECT * FROM ##MD_DWDTFG WHERE TABLENAME = @TABLENAME)
+      BEGIN
+      	  
+      	   SET @DATE_SQL = 'SELECT @MAX_DATE = CONVERT(CHAR(8),MAX('+RTRIM(@DATADT_COL)+'),112),@MIN_DATE = CONVERT(CHAR(8),MIN('+RTRIM(@DATADT_COL)+'),112) FROM odsdba.['+RTRIM(@TABLENAME)+'];'
+           --RINT @DATE_SQL
+           EXECUTE sp_executesql @DATE_SQL,N'@MAX_DATE CHAR(8) OUT,@MIN_DATE CHAR(8) OUT',@MAX_DATE OUT,@MIN_DATE OUT;
+      	
+      	   INSERT INTO ##MD_DWTBLINFO
+      	   SELECT 'DWBASISDB',@TABLENAME,@TABLESIZE,@MAX_DATE,@MIN_DATE 
+           
+      END ELSE BEGIN
+      	
+      	   INSERT INTO ##MD_DWTBLINFO
+      	   SELECT 'DWBASISDB',@TABLENAME,@TABLESIZE,'','' 
+      END	   
+ 	
+
+   FETCH NEXT FROM TABLEList 
+   INTO  @TABLENAME,@TABLESIZE
+   
+ END    
+ 
+ CLOSE TABLEList;                                                                                                             
+ DEALLOCATE TABLEList;
+    
+        
+        
+SELECT * FROM  ##MD_DWTBLINFO

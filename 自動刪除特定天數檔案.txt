@@ -1,0 +1,1 @@
+forfiles -p "D:\Informatica\9.1.0\server\infa_shared\SessLogs" -s -m *.* -d -90 -c "cmd /c del @path"

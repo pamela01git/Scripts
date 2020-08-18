@@ -1,0 +1,1 @@
+EXEC TWTPEBID4V.Dmfin.sys.sp_executesql N'TRUNCATE TABLE dbo.FS_AP_ASOFDATE_TMP'

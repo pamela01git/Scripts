@@ -1,0 +1,2 @@
+DBCC CHECKIDENT ('HumanResources.Employee', RESEED, 30);
+

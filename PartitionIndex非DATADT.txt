@@ -1,0 +1,4 @@
+SELECT TBL.NAME as tbname, i.name as ix_name, c.name as colname FROM sys.tables AS tbl INNER JOIN sys.indexes AS i ON (i.index_id > 0 and i.is_hypothetical = 0) AND (i.object_id=tbl.object_id) 
+INNER JOIN sys.index_columns ic ON (ic.partition_ordinal > 0) AND (ic.index_id=CAST(i.index_id AS int) AND ic.object_id=CAST(i.object_id AS int)) 
+INNER JOIN sys.columns c ON c.object_id = ic.object_id and c.column_id = ic.column_id WHERE C.NAME<>'DATADT' 
+ORDER BY TBL.NAME  

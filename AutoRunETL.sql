@@ -1,0 +1,81 @@
+DECLARE @START_DATE DATETIME,@END_DATE DATETIME
+
+DECLARE @JOB_NAME VARCHAR(128),@CYCLE_START DATETIME,@CYCLE_END DATETIME,@STARTMODE VARCHAR(10)
+
+SET @JOB_NAME='InitSHTOP'
+
+SET @START_DATE='20070301'
+
+SET @END_DATE=  '20100305'
+
+SET @STARTMODE='NORMAL'
+
+WHILE @START_DATE<@END_DATE
+
+BEGIN
+
+  DECLARE @ID uniqueidentifier
+
+  DECLARE @STEP_ID INT
+
+  DECLARE @CMD nvarchar(1000)
+
+  SET @CYCLE_START=@START_DATE
+
+  --SET @CYCLE_END=DATEADD(m,1,@START_DATE)
+
+  SELECT @ID=S1.JOB_ID,@STEP_ID=STEP_ID,@JOB_NAME=LTRIM(RTRIM(@JOB_NAME)) 
+
+  FROM MSDB.DBO.SYSJOBS AS S1
+
+  JOIN MSDB.dbo.SYSJOBSTEPS  AS S2 ON S1.JOB_ID=S2.JOB_ID
+
+  WHERE S1.NAME=S2.STEP_NAME AND S1.NAME=@JOB_NAME
+
+  SET @CMD=N'/SQL "\JobControl\'+@JOB_NAME+'" /SERVER localhost /DECRYPT etl /MAXCONCURRENT " -1 " /CHECKPOINTING OFF '+
+
+'/SET "\Package.Variables[User::CycleStart].Properties[Value]";"'+CONVERT(char(19),@START_DATE,121)+'" '+
+
+'/SET "\Package.Variables[User::CycleEnd].Properties[Value]";"'+CONVERT(char(19),dateadd(day,1,@START_DATE),121)+'" '+
+
+'/SET "\Package.Variables[User::StartMode].Properties[Value]";'+@STARTMODE+' /REPORTING E'
+
+ 
+
+  EXEC msdb.dbo.sp_update_jobstep @job_id=@ID, @step_id=@STEP_ID ,@command=@CMD
+
+  --print @JOB_NAME
+
+  --print @step_id
+
+  --print @CMD
+
+  WAITFOR DELAY '00:00:10'
+
+  EXEC msdb.dbo.sp_start_job @job_name
+
+  WAITFOR DELAY '00:01:00'
+
+  WHILE EXISTS(SELECT * FROM ETLMD.dbo.XFLOWSTATUS WHERE DATACAT='CCMS' AND RUN_STATUS NOT IN('RUNOK','ABORT') )
+
+    BEGIN
+
+      WAITFOR DELAY '00:00:10'
+
+    END 
+
+    
+
+    IF (SELECT RUN_STATUS FROM ETLMD.dbo.XFLOWSTATUS WHERE DATACAT='CCMS')='ABORT' BEGIN
+
+      SET @START_DATE='20101101'  
+
+    END   
+
+  EXEC msdb.dbo.sp_start_job 'UTLShrinkLog'
+
+  WAITFOR DELAY '00:01:00'
+
+  SET @START_DATE=DATEADD(day,1,@START_DATE)
+
+END

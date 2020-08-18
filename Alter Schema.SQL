@@ -1,0 +1,2 @@
+找出TYPE及UID後一起執行
+ALTER SCHEMA odsdba TRANSFER dbo.SP_INS_CBTxchnlcat1_TMPCBTxchnlcat1

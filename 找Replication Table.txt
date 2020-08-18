@@ -1,0 +1,8 @@
+select name as published_object, schema_id, is_published as is_tran_published, is_merge_published, is_schema_published
+from sys.tables where is_published = 1 or is_merge_published = 1 or is_schema_published = 1
+union
+select name as published_object, schema_id, 0, 0, is_schema_published
+from sys.procedures where is_schema_published = 1
+union
+select name as published_object, schema_id, 0, 0, is_schema_published
+from sys.views where is_schema_published = 1

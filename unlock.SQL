@@ -1,0 +1,1 @@
+alter login [user_george] with password ='Georg!5497' unlock

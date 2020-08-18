@@ -1,0 +1,1 @@
+EXEC sp_spaceused N'odsdba.FB_Acct1_DW';

@@ -1,0 +1,63 @@
+/*
+                Backups are a great background performance test.  They run every night,
+                they read a lot of data, they write a lot of data, and SQL Server tracks
+                performance for us.  Let's trend backup data over time to see if it's
+                getting better or worse overall.  You can compare these numbers against the
+                other SQL Servers in your environment, but also be aware of where SQL is
+                reading the data from and where it's being written.  If either of those is
+                slow, it'll impact your backup performance.
+*/
+SELECT  @@SERVERNAME AS ServerName ,
+        YEAR(backup_finish_date) AS backup_year ,
+        MONTH(backup_finish_date) AS backup_month ,
+        CAST(AVG(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_avg ,
+        CAST(MIN(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_min ,
+        CAST(MAX(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_max
+FROM    msdb.dbo.backupset bset
+WHERE   bset.type = 'D' /* full backups only */
+        AND bset.backup_size > 5368709120 /* 5GB or larger */
+        AND DATEDIFF(ss, bset.backup_start_date, bset.backup_finish_date) > 1 /* backups lasting over a second */
+GROUP BY YEAR(backup_finish_date) ,
+        MONTH(backup_finish_date)
+ORDER BY @@SERVERNAME ,
+        YEAR(backup_finish_date) DESC ,
+        MONTH(backup_finish_date) DESC
+
+
+
+
+/* 
+                Sometimes certain backups go faster or slower depending on when they occur,
+                the speed of their source drives, speed of their backup targets, etc. Let's
+                break out backup throughput by database over time:
+*/
+SELECT  @@SERVERNAME AS ServerName ,
+        database_name ,
+        YEAR(backup_finish_date) AS backup_year ,
+        MONTH(backup_finish_date) AS backup_month ,
+        CAST(AVG(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_avg ,
+        CAST(MIN(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_min ,
+        CAST(MAX(( backup_size / ( DATEDIFF(ss, bset.backup_start_date,
+                                            bset.backup_finish_date) )
+                   / 1048576 )) AS INT) AS throughput_mb_sec_max
+FROM    msdb.dbo.backupset bset
+WHERE   bset.type = 'D' /* full backups only */
+        AND bset.backup_size > 5368709120 /* 5GB or larger */
+        AND DATEDIFF(ss, bset.backup_start_date, bset.backup_finish_date) > 1 /* backups lasting over a second */
+GROUP BY database_name ,
+        YEAR(backup_finish_date) ,
+        MONTH(backup_finish_date)
+ORDER BY @@SERVERNAME ,
+        database_name ,
+        YEAR(backup_finish_date) DESC ,
+        MONTH(backup_finish_date) DESC

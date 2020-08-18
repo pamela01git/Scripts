@@ -1,0 +1,125 @@
+USE [ReportDB]
+
+DECLARE @DOMAIN VARCHAR(10) = 'FETCP'
+
+
+IF OBJECT_ID('TEMPDB..#TMP1') IS NOT NULL DROP TABLE  #TMP1;
+CREATE TABLE #TMP1 (TEXT NVARCHAR(MAX));
+
+DECLARE cur1  CURSOR FORWARD_ONLY FOR
+
+--ISNULL(REPLACE(REPLACE(@String, CHAR(13), ' '), CHAR(10), ' '), 'None')
+
+  SELECT OBJECT_NAME(s1.id), REPLACE(REPLACE(LEFT(S1.text,10), CHAR(13), ''), CHAR(10), '')+SUBSTRING(S1.TEXT,11,4000), s1.number, s1.colid ,s2.colid,S3.TYPE
+  FROM SYS.syscomments s1
+   left join (  SELECT id as object_id ,max (colid) as colid
+  FROM SYS.syscomments
+  group by id) s2 on (s2.object_id=s1.id)
+  LEFT JOIN SYS.OBJECTS S3 ON  (s3.object_id=s1.id)
+  --WHERE (OBJECT_NAME(s1.id) LIKE 'SP_RPT_ACCLNK%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_ACCOUNT%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_ADJUST%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_BILLING%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_CORPOR%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_HANFEE%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_REFUND%' OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_SETTLE%' OR OBJECT_NAME(s1.id) LIKE 'SP_QRY_BMS%')
+  --   OR (S3.TYPE IN ('FN','TF'))
+  where OBJECT_NAME(s1.id) LIKE 'SP_RPT_CRM%'
+     OR OBJECT_NAME(s1.id) LIKE 'SP_PAR%'
+	 OR OBJECT_NAME(s1.id) LIKE 'SP_QRY_CRM%' 
+
+  OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_DP%'
+     OR OBJECT_NAME(s1.id) LIKE 'SP_RPT_CP%'
+     OR OBJECT_NAME(s1.id) LIKE 'SP_PAR%'
+	 
+  ORDER BY 1,4
+
+DECLARE @SP_NAME varchar(200)
+DECLARE @PRE_SP_NAME varchar(200)
+DECLARE @SP_BODY Nvarchar(MAX)
+DECLARE @SP_BODY1 Nvarchar(MAX) =''
+DECLARE @NUMBER smallint
+DECLARE @COLID smallint
+DECLARE @Loop smallint = 0
+DECLARE @NewLine varchar(20)
+SET @NewLine = char(13) + char(10)
+declare @max_colin smallint
+DECLARE @TYPE VARCHAR(10)
+
+
+
+OPEN cur1
+
+FETCH NEXT FROM cur1 INTO @SP_NAME, @SP_BODY, @NUMBER, @COLID, @max_colin,@TYPE
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  
+ 
+ 
+   IF @COLID=1
+      BEGIN
+      SET @SP_BODY =REPLACE(REPLACE(@SP_BODY,'CREATE PROC','ALTER PROC'),'CREATE FUNCTION','ALTER FUNCTION')
+	  SET @SP_BODY =REPLACE(REPLACE(@SP_BODY,'CREATE  PROC','ALTER PROC'),'CREATE  FUNCTION','ALTER FUNCTION')
+     SET @PRE_SP_NAME = ''
+ 
+	 SET @SP_BODY = 'USE ['+DB_NAME()+']
+	 IF NOT EXISTS (SELECT 1 FROM SYS.OBJECTS WHERE NAME='''+@SP_NAME+''')' +    @NewLine 
+	 +'BEGIN '+    @NewLine 
+	 + CASE WHEN @TYPE = 'P' THEN 'EXEC (''CREATE PROCEDURE [DBO].['+@SP_NAME+'] AS SELECT 1'')'
+	        WHEN @TYPE = 'FN' THEN 'EXEC (''CREATE FUNCTION [DBO].['+@SP_NAME+'] (@P INT) RETURNS INT AS BEGIN RETURN @P END'')'
+			WHEN @TYPE = 'TF' THEN 'EXEC (''CREATE FUNCTION [DBO].['+@SP_NAME+'] (@P INT) RETURNS @PT TABLE (COL INT) AS BEGIN RETURN END'')'
+			END +    @NewLine 
+
+      + CASE WHEN @SP_NAME LIKE 'SP_RPT_ACCLNK%' OR @SP_NAME LIKE 'SP_RPT_ACCOUNT%' OR @SP_NAME LIKE 'SP_RPT_ADJUST%' OR @SP_NAME LIKE 'SP_RPT_BILLING%' OR @SP_NAME LIKE 'SP_RPT_CORPOR%' OR @SP_NAME LIKE 'SP_RPT_HANFEE%' OR @SP_NAME LIKE 'SP_RPT_REFUND%' OR @SP_NAME LIKE 'SP_RPT_SETTLE%'
+	     THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsdbrpt]' 
+		     WHEN @SP_NAME LIKE 'SP_QRY_BMS%' 
+         THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsdbrpt];
+		       GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsservice];'
+		     WHEN @TYPE ='FN' 
+         THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsdbrpt];
+		       GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsservice];'
+		     WHEN @TYPE ='TF' 
+         THEN 'GRANT SELECT ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsdbrpt];
+		       GRANT SELECT ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsservice];'
+		     WHEN @SP_NAME LIKE 'SP_EXE%' 
+         THEN ' GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\bmsservice];'
+		     WHEN @SP_NAME LIKE 'SP_RPT_CP%' OR @SP_NAME LIKE 'SP_RPT_DP%' 
+         THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\ptldbrpt];'
+		     WHEN @SP_NAME LIKE 'SP_RPT_CRM%' 
+         THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\crmdbrpt];'
+		     WHEN @SP_NAME LIKE 'SP_PAR%' 
+         THEN 'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\ptldbrpt];
+		       GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\crmappisv];
+		       GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\crmdbrpt];'
+		     WHEN @SP_NAME = 'SP_RPT_DP_09010_ETAG_LIST' 
+         THEN  'GRANT EXECUTE ON OBJECT::DBO.['+@SP_NAME +'] TO ['+@DOMAIN+'\crmdbrpt];'
+		 ELSE ''
+         END
+
+	 +    @NewLine +' END ' +    @NewLine  + 'GO'  +    @NewLine+ @SP_BODY
+
+    END
+
+   SET @PRE_SP_NAME = @SP_NAME
+
+
+
+     set @SP_BODY1 =' '+@SP_BODY1 +@SP_BODY
+     
+         IF  @COLID=@max_colin 
+     BEGIN 
+     SET @SP_BODY1 =  @SP_BODY1 +    @NewLine  + 'GO'  +    @NewLine;
+        print @SP_BODY1;
+
+        INSERT INTO #TMP1
+        SELECT @SP_BODY1
+        
+        SET @SP_BODY1 = ''
+     END
+
+   FETCH NEXT FROM cur1 INTO @SP_NAME, @SP_BODY, @NUMBER, @COLID, @max_colin,@TYPE
+
+  
+END
+
+CLOSE cur1; DEALLOCATE cur1
+
+
+
+SELECT * FROM #TMP1
+

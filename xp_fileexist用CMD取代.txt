@@ -1,0 +1,37 @@
+Karen Ku (ManpowerGroup Taiwan) ¤W¤È 10:05: 
+DECLARE @IsFileExists INT;
+DECLARE @FileName varchar(255);
+DECLARE @TableName varchar(100);
+SET @TableName = 'OPRMOperatingRoom'; -- Set table name
+SET @FileName = 'C:\SqlBulk\SeedData\Operation\'+@TableName+'.bcp'; -- set bcp file 
+EXEC master..xp_fileexist @FileName,  @IsFileExists OUTPUT;
+SELECT @IsFileExists 
+George Liang ¤W¤È 10:40: 
+ 
+DECLARE @IsFileExists INT
+DECLARE @FileName varchar(255);
+DECLARE @TableName varchar(100);
+SET @TableName = 'OPRMOperatingRoom'; -- Set table name
+SET @FileName = 'dir "C:\SqlBulk\SeedData\Operation\'+@TableName+'.bcp" /B'; -- set bcp file 
+EXEC @IsFileExists = XP_CMDSHELL @filename, NO_OUTPUT
+ 
+ 
+IF @IsFileExists = 1 
+  PRINT 'File Donot exists'
+ELSE
+PRINT 'File exists' 
+George Liang ¤W¤È 10:41: 
+-- To allow advanced options to be changed.  
+EXEC sp_configure 'show advanced options', 1;  
+GO  
+-- To update the currently configured value for advanced options.  
+RECONFIGURE;  
+GO  
+-- To enable the feature.  
+EXEC sp_configure 'xp_cmdshell', 1;  
+GO  
+-- To update the currently configured value for this feature.  
+RECONFIGURE;  
+GO  
+ 
+EXEC sp_xp_cmdshell_proxy_account 'skhcorp\MSFTDevSVC', '1qaz@WSX'  

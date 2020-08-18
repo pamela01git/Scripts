@@ -1,0 +1,33 @@
+select * from dbo.MSdistribution_agents
+
+select * from dbo.MSlogreader_agents
+
+select * from sys.databases
+
+exec sp_replicationdboption 'gccdbr'
+
+select * from sysdatabases 
+
+select name as published_object, schema_id, is_published as is_tran_published, is_merge_published, is_schema_published
+from sys.tables where is_published = 1 or is_merge_published = 1 or is_schema_published = 1
+union
+select name as published_object, schema_id, 0, 0, is_schema_published
+from sys.procedures where is_schema_published = 1
+union
+select name as published_object, schema_id, 0, 0, is_schema_published
+from sys.views where is_schema_published = 1
+
+--Publication DB
+Select * From sys.tables Where object_id = object_id(N'syspublications')
+
+select * From syspublications 
+select * from sysarticles
+
+	Select src1.name,src2.* From syspublications src1 
+			left join sysarticles as src2 on src2.pubid = src1.pubid
+
+select * from 
+
+select * from sys.objects
+where type= 'p'
+where name like  'sp_MSdel_dboS_ORG_EXT_XM%'

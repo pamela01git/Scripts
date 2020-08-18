@@ -1,0 +1,1 @@
+sqlcmd -S"localhost" -U"crmuser" -P"Crm@2006" -d"Cathay_Demo" -i"C:\專案-測試\改版\StoredProcedure_Upgrade.sql"

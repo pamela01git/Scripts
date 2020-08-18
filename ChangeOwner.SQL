@@ -1,0 +1,1 @@
+exec sp_changeobjectowner 'TABLE','OWNER'

@@ -1,0 +1,19 @@
+
+EXEC sp_depends @objname = N'dbo.GCCJP_MALWARE' 
+just input table name or stored procedure name
+the other one, you can find the information from sys.sql_dependencies 
+for example:
+select object_name([OBJECT_ID]) as [Object_Name],OBJECT_NAME(referenced_major_id) as [Referenced_Object_Name],* 
+from sys.sql_dependencies 
+
+
+SELECT * FROM sys.sql_expression_dependencies
+WHERE OBJECT_NAME (referencing_id) ='v_EMPLOYEE_ENT_DEPT_MAPPING'
+
+use dw
+go
+select object_name(referencing_id) as [Object_Name],referenced_database_name,referenced_schema_name,referenced_entity_name,* from sys.sql_expression_dependencies
+where object_name(referencing_id) in 
+(select job_name from etlmd.dbo.xbatchflow where datacat like '%sales' 
+and job_stage='dw' and job_type='s')
+and referenced_entity_name like 'ods%'

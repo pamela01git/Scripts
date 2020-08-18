@@ -1,0 +1,6 @@
+       SELECT  A.NAME 
+       FROM   dbo.SYSOBJECTS A
+        JOIN  dbo.SYSINDEXES C ON A.ID=C.ID
+        JOIN  dbo.SYSINDEXKEYS D ON C.ID=D.ID AND C.INDID=D.INDID
+        JOIN  dbo.SYSCOLUMNS E ON E.ID=C.ID AND D.COLID=E.COLID   
+      WHERE E.name = ''

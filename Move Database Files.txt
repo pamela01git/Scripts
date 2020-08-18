@@ -1,0 +1,25 @@
+To move a file as part of a planned relocation, follow these steps. 
+
+1. Run ALTER DATABASE database_name SET OFFLINE.
+2. Move the file to the new location.
+3. Run ALTER DATABASE database_name MODIFY FILE ( NAME = logical_name, FILENAME = 'new_path/os_file_name').
+4. Run ALTER DATABASE database_name SET ONLINE.
+
+
+alter database crmbasisdb
+modify file (name =CRMBASISDB_DATA,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_Data.MDF')
+
+alter database crmbasisdb
+modify file (name =CRMBasisDB_FG1F1,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_FG1F1.NDF')
+alter database crmbasisdb
+modify file (name =CRMBasisDB_FG1F2,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_FG1F2.NDF')
+alter database crmbasisdb
+modify file (name =CRMBasisDB_FG1F3,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_FG1F3.NDF')
+alter database crmbasisdb
+modify file (name =CRMBasisDB_FG1F4,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_FG1F4.NDF')
+alter database crmbasisdb
+modify file (name =CRMBasisDB_FG1F5,filename=N'H:\CRMBasisDB_PD\CRMBasisDB_FG1F5.NDF')
+
+
+alter database crmbasisdb
+modify file(name =CRMBASISDB_DATA,filegrowth=10%)

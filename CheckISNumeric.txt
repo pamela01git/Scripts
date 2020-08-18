@@ -1,0 +1,14 @@
+兩位:
+
+下面是我遇到SQL Server無法正確判斷數字時的處理
+(1) 是先把字元「D」、「E」、「.」、「,」轉成問號，這樣ISNUMERIC就會判別出來
+(2) 是MGTINFO的特別情形，連字元都抓不出來的，就在轉換時強制移除那些字元
+
+
+
+CASE WHEN ISNUMERIC(REPLACE(REPLACE(REPLACE(BIOCAT,'.','?'),'D','?'),'E','?'))=1 
+        THEN CAST(REPLACE(REPLACE(REPLACE(REPLACE(BIOCAT,'.',''),'D',''),'E',''),'?','') AS DECIMAL(2,0)) 
+        ELSE 0 END
+
+
+Hank

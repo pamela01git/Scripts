@@ -1,0 +1,2 @@
+SELECT STATS_DATE(OBJECT_ID('PROMEmployee'), 
+(SELECT index_id FROM sys.indexes WHERE name = 'PK_PROMEMPLOYEE'))
