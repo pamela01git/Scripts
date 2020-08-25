@@ -1,4 +1,4 @@
-Karen Ku (ManpowerGroup Taiwan) ¤W¤È 10:05: 
+Karen Ku (ManpowerGroup Taiwan) Â¤WÂ¤Ãˆ 10:05: 
 DECLARE @IsFileExists INT;
 DECLARE @FileName varchar(255);
 DECLARE @TableName varchar(100);
@@ -6,7 +6,7 @@ SET @TableName = 'OPRMOperatingRoom'; -- Set table name
 SET @FileName = 'C:\SqlBulk\SeedData\Operation\'+@TableName+'.bcp'; -- set bcp file 
 EXEC master..xp_fileexist @FileName,  @IsFileExists OUTPUT;
 SELECT @IsFileExists 
-George Liang ¤W¤È 10:40: 
+George Liang Â¤WÂ¤Ãˆ 10:40: 
  
 DECLARE @IsFileExists INT
 DECLARE @FileName varchar(255);
@@ -20,7 +20,7 @@ IF @IsFileExists = 1
   PRINT 'File Donot exists'
 ELSE
 PRINT 'File exists' 
-George Liang ¤W¤È 10:41: 
+George Liang Â¤WÂ¤Ãˆ 10:41: 
 -- To allow advanced options to be changed.  
 EXEC sp_configure 'show advanced options', 1;  
 GO  
@@ -34,4 +34,4 @@ GO
 RECONFIGURE;  
 GO  
  
-EXEC sp_xp_cmdshell_proxy_account 'skhcorp\MSFTDevSVC', '1qaz@WSX'  
+EXEC sp_xp_cmdshell_proxy_account '', ''  
